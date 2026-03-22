@@ -34,6 +34,14 @@ namespace Converse
                         FteCropEditor.Render(renderer);
                         //FteTextureGenerator.Draw(renderer);
                     }
+                    if (ImGui.BeginTabItem("Table Generator"))
+                    {
+                        StringTableGenerator.Render(renderer);
+                    }
+                    if (ImGui.BeginTabItem("CSV Editor"))
+                    {
+                        FcoEditorTab.Render(renderer);
+                    }
                     ImGui.EndTabBar();
                 }
             }
@@ -45,6 +53,8 @@ namespace Converse
             renderer.config.translationTable.Clear();
             FcoViewer.Reset();
             FteCropEditor.Reset();
+            StringTableGenerator.Reset();
+            FcoEditorTab.Reset();
         }
     }
 }
