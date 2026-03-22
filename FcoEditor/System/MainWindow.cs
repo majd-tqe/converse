@@ -33,9 +33,24 @@ namespace Converse
                 .SetOption(config => { config.FontBuilderFlags |= (uint)ImGuiFreeTypeBuilderFlags.LoadColor; })
                 .AddFontFromFileTTF(Path.Combine(Application.ResourcesDirectory, "RobotoVariable.ttf"), 16 * GetDpiScaling())
                 .AddFontFromFileTTF(Path.Combine(Application.ResourcesDirectory, "NotoSansJP-Regular.ttf"), 18 * GetDpiScaling(), ImGui.GetIO().Fonts.GetGlyphRangesJapanese())
+                .AddFontFromFileTTF(Path.Combine(Application.ResourcesDirectory, "NotoSansArabic-Regular.ttf"), 16 * GetDpiScaling(), GetArabicGlyphRanges())
                 .AddFontFromFileTTF(Path.Combine(Application.ResourcesDirectory, FontAwesome6.FontIconFileNameFAS), 16 * GetDpiScaling(), [0x1, 0x1FFFF])
                 .Build();
             }
+        }
+
+        static uint[] GetArabicGlyphRanges()
+        {
+            return new uint[]
+            {
+                0x0020, 0x00FF,  // Basic Latin + Latin Supplement
+                0x0600, 0x06FF,  // Arabic
+                0x0750, 0x077F,  // Arabic Supplement
+                0x08A0, 0x08FF,  // Arabic Extended-A
+                0xFB50, 0xFDFF,  // Arabic Presentation Forms-A
+                0xFE70, 0xFEFF,  // Arabic Presentation Forms-B
+                0
+            };
         }
         public override void OnLoad()
         {
@@ -67,6 +82,12 @@ namespace Converse
         private void LoadFromArgs(string[] in_Args)
         {
             string pathFTE = ConverseProject.AskForFTE(in_Args[0]);
+            if (string.IsNullOrEmpty(pathFTE))
+            {
+                var fteDialog = NativeFileDialogSharp.Dialog.FileOpen("fte", System.IO.Directory.GetParent(in_Args[0]).FullName);
+                if (fteDialog.IsOk)
+                    pathFTE = fteDialog.Path;
+            }
             ConverseProject.LoadPairFile(in_Args[0], pathFTE);
         }
 
