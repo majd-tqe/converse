@@ -149,12 +149,12 @@ namespace Converse
                     }
                     else
                     {
-                        SpriteHelper.AddTexture(new Texture(""));
-                        if(!missingTextures.Contains(texture.Name + ".dds"))
-                            missingTextures.Add(texture.Name + ".dds");
+                            SpriteHelper.AddTexture(new Texture(""));
+                            if(!missingTextures.Contains(texture.Name + ".dds"))
+                                missingTextures.Add(texture.Name + ".dds");
+                        }
                     }
-                }
-            }
+                }            
             if (missingTextures.Count > 0)
             {
                 string textureNames = "";
@@ -177,6 +177,18 @@ namespace Converse
                 string path = Path.Combine(Program.Path, "Resources", "Tables", "bb", "All.json");
                 ImportTranslationTable(path);
             }
+
+            // Auto-load translation table if a .json file with the same name as the FTE exists
+            if (!string.IsNullOrEmpty(config.ftePath))
+            {
+                string fteDirectory = Path.GetDirectoryName(config.ftePath);
+                string fteNameWithoutExt = Path.GetFileNameWithoutExtension(config.ftePath);
+                string matchingTablePath = Path.Combine(fteDirectory, fteNameWithoutExt + ".json");
+                if (File.Exists(matchingTablePath))
+                {
+                    ImportTranslationTable(matchingTablePath);
+                }
+            }
             if (GetFcoFiles().Count > 0)
             {
                 if (GetFcoFiles().Count > 1)
@@ -190,6 +202,14 @@ namespace Converse
         public void LoadPairFile(string in_Path, string in_PathFte)
         {
             if (!LoadFCO(in_Path) || !LoadFTE(in_PathFte))
+                return;
+            AfterLoadFile();
+        }
+        public void ReloadFTE(string in_PathFte)
+        {
+            if (string.IsNullOrEmpty(in_PathFte))
+                return;
+            if (!LoadFTE(in_PathFte))
                 return;
             AfterLoadFile();
         }
@@ -294,14 +314,24 @@ namespace Converse
         internal List<SFileInfo> GetFcoFiles() => config.fcoFile;
         public string AskForFTE(string in_FcoPath, bool in_UseParent = true)
         {
-            var possibleFtePath = Path.Combine(in_UseParent ? Directory.GetParent(in_FcoPath).FullName : in_FcoPath, "fte_ConverseMain.fte");
+            // First check if there's an FTE file with the same name as the FCO file
+            string fcoFileNameWithoutExtension = Path.GetFileNameWithoutExtension(in_FcoPath);
+            string fcoDirectory = Path.GetDirectoryName(in_FcoPath);
+            string sameNameFtePath = Path.Combine(fcoDirectory, fcoFileNameWithoutExtension + ".fte");
 
-            var testdial2 = NativeFileDialogSharp.Dialog.FileOpen("fte", Directory.GetParent(in_FcoPath).FullName);
-            if (testdial2.IsOk)
+            if (File.Exists(sameNameFtePath))
             {
-                possibleFtePath = testdial2.Path;
+                return sameNameFtePath;
             }
-            return possibleFtePath;
+
+            // Check if fte_ConverseMain.fte exists and use it automatically
+            var possibleFtePath = Path.Combine(in_UseParent ? Directory.GetParent(in_FcoPath).FullName : in_FcoPath, "fte_ConverseMain.fte");
+            if (File.Exists(possibleFtePath))
+            {
+                return possibleFtePath;
+            }
+
+            return "";
         }
 
         internal void LoadFolder(string path)

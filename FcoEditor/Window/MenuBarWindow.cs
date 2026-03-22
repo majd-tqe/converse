@@ -66,6 +66,12 @@ namespace Converse
                         if (testdial.IsOk)
                         {
                             var possibleFtePath = renderer.AskForFTE(testdial.Path);
+                            if (string.IsNullOrEmpty(possibleFtePath))
+                            {
+                                var fteDialog = NativeFileDialogSharp.Dialog.FileOpen("fte", Directory.GetParent(testdial.Path).FullName);
+                                if (fteDialog.IsOk)
+                                    possibleFtePath = fteDialog.Path;
+                            }
                             renderer.LoadPairFile(@testdial.Path, possibleFtePath);
                         }
                     }
@@ -111,6 +117,19 @@ namespace Converse
                     if (ImGui.MenuItem("Find and Replace", "Ctrl + H", FindReplaceTool.Enabled))
                     {
                         FindReplaceTool.SetActive(true, true);
+                    }
+                    ImGui.Separator();
+                    if (ImGui.MenuItem("Select another FTE", false, renderer.GetFcoFiles().Count > 0))
+                    {
+                        if (renderer.config.fcoFile.Count > 0)
+                        {
+                            string fcoPath = renderer.config.fcoFile[0].path;
+                            var fteDialog = NativeFileDialogSharp.Dialog.FileOpen("fte", Directory.GetParent(fcoPath).FullName);
+                            if (fteDialog.IsOk)
+                            {
+                                renderer.ReloadFTE(fteDialog.Path);
+                            }
+                        }
                     }
                     ImGui.Separator();
                     if (ImGui.MenuItem("Preferences", SettingsWindow.Enabled))
